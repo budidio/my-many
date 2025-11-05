@@ -61,7 +61,7 @@
           </div>
           <div class="flex" style="display:flex;gap:6px">
             <select id="monthFilter"></select>
-            <button class="ghost" id="btnPrint">Cetak</button>
+            <button class="ghost" id="btnPrint">🖨️ Cetak</button>
             <button class="ghost" id="btnLogout">Keluar</button>
           </div>
         </div>
@@ -89,7 +89,7 @@
         <!-- Grafik -->
         <div class="chart-container"><canvas id="chart"></canvas></div>
 
-        <!-- Tabel (dipindah ke bawah grafik) -->
+        <!-- Tabel -->
         <div style="overflow:auto;margin-top:20px">
           <table>
             <thead>
@@ -103,127 +103,97 @@
   </div>
 
   <script>
-    const SHEET_API = "https://script.google.com/macros/s/AKfycbzQlv_kZWPGhmQSyRk7HCUrpqVnjdpdfH8x1vpqhlzbvVs0WguQZW_e4EfKtshVQUnfzA/exec";
-    const USER = "admin", PASS = "1122aabb";
+  const SHEET_API = "https://script.google.com/macros/s/AKfycbzQlv_kZWPGhmQSyRk7HCUrpqVnjdpdfH8x1vpqhlzbvVs0WguQZW_e4EfKtshVQUnfzA/exec";
+  const USER="admin",PASS="1122aabb";
+  
+  const loginCard=document.getElementById("loginCard");
+  const dash=document.getElementById("dash");
+  const btnLogin=document.getElementById("btnLogin");
+  const btnLogout=document.getElementById("btnLogout");
+  const loginErr=document.getElementById("loginErr");
 
-    const loginCard = document.getElementById("loginCard");
-    const dash = document.getElementById("dash");
-    const btnLogin = document.getElementById("btnLogin");
-    const btnLogout = document.getElementById("btnLogout");
-    const loginErr = document.getElementById("loginErr");
-    const monthFilter = document.getElementById("monthFilter");
-    const btnPrint = document.getElementById("btnPrint");
+  btnLogin.onclick=()=>{const u=username.value.trim(),p=password.value.trim();if(u===USER&&p===PASS){loginCard.classList.add("hide");dash.classList.remove("hide");loadFromSheet();}else{loginErr.style.display="block";loginErr.textContent="Username atau password salah";}};
+  btnLogout.onclick=()=>{loginCard.classList.remove("hide");dash.classList.add("hide");};
 
-    btnLogin.onclick = () => {
-      const u = username.value.trim(), p = password.value.trim();
-      if (u === USER && p === PASS) { loginCard.classList.add("hide"); dash.classList.remove("hide"); loadFromSheet(); }
-      else { loginErr.style.display="block"; loginErr.textContent="Username atau password salah"; }
-    };
-    btnLogout.onclick = ()=>{ loginCard.classList.remove("hide"); dash.classList.add("hide"); };
-    btnPrint.onclick = ()=> window.print();
+  let entries=[],filtered=[];
+  const tbody=document.getElementById("entriesTable");
+  const totalIncomeEl=document.getElementById("totalIncome"),totalExpenseEl=document.getElementById("totalExpense"),balanceEl=document.getElementById("balance"),countEl=document.getElementById("count");
+  const monthFilter=document.getElementById("monthFilter");
 
-    let entries = [], filtered = [];
-    const tbody = document.getElementById("entriesTable");
-    const totalIncomeEl = document.getElementById("totalIncome");
-    const totalExpenseEl = document.getElementById("totalExpense");
-    const balanceEl = document.getElementById("balance");
-    const countEl = document.getElementById("count");
+  const ctx=document.getElementById("chart").getContext("2d");
+  let myChart=new Chart(ctx,{type:"line",data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false}});
 
-    const ctx = document.getElementById("chart").getContext("2d");
-    let myChart = new Chart(ctx, { type:"line", data:{labels:[],datasets:[]}, options:{responsive:true,maintainAspectRatio:false} });
+  function fmt(n){return Number(n).toLocaleString('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0});}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 
-    function fmt(n){return Number(n).toLocaleString('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0})}
-    function formatTanggal(val){
-      const d = new Date(val);
-      return isNaN(d) ? val : d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});
-    }
-
-    async function loadFromSheet(){
-      const res = await fetch(SHEET_API);
-      const rows = await res.json();
-      entries = rows.slice(1).map(r=>({date:r[0],desc:r[1],type:r[2],amount:Number(r[3])}));
-      updateMonthFilter();
-      applyFilter();
-    }
-
-    async function sendToSheet(entry){
-      const formData = new FormData();
-      formData.append("date", entry.date);
-      formData.append("desc", entry.desc);
-      formData.append("type", entry.type);
-      formData.append("amount", entry.amount);
-      await fetch(SHEET_API, { method:"POST", mode:"no-cors", body:formData });
-    }
-
-    entryForm.onsubmit = async e=>{
-      e.preventDefault();
-      const entry = {
-        date: date.value,
-        desc: desc.value.trim(),
-        type: type.value,
-        amount: Number(amount.value)
-      };
-      if(!entry.date || !entry.desc || !entry.amount) return alert("Lengkapi semua kolom!");
-      entries.push(entry);
-      await sendToSheet(entry);
-      entryForm.reset();
-      updateMonthFilter();
-      applyFilter();
-    };
-
-    function updateMonthFilter(){
-      const months = [...new Set(entries.map(e=> new Date(e.date).toISOString().slice(0,7)))].sort().reverse();
-      monthFilter.innerHTML = `<option value="">Semua Bulan</option>` +
-        months.map(m=>`<option value="${m}">${new Date(m+"-01").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}</option>`).join('');
-    }
-
-    monthFilter.onchange = ()=>applyFilter();
-
-    function applyFilter() {
-  const filterVal = monthFilter.value;
-  if (!filterVal) {
-    filtered = entries;
-  } else {
-    const [year, month] = filterVal.split('-').map(Number);
-    filtered = entries.filter(e => {
-      const d = new Date(e.date);
-      return d.getFullYear() === year && d.getMonth() + 1 === month;
-    });
+  async function loadFromSheet(){
+    try{
+      const res=await fetch(SHEET_API);
+      const rows=await res.json();
+      entries=rows.slice(1).map(r=>({id:uid(),date:r[0],desc:r[1],type:r[2],amount:Number(r[3])}));
+      setupMonthFilter();applyFilter();
+    }catch(e){alert("Gagal ambil data dari Google Sheets");console.error(e);}
   }
-  render();
-}
 
+  async function sendToSheet(entry){
+    try{
+      const fd=new FormData();
+      fd.append("date",entry.date);fd.append("desc",entry.desc);fd.append("type",entry.type);fd.append("amount",entry.amount);
+      await fetch(SHEET_API,{method:"POST",mode:"no-cors",body:fd});
+    }catch(e){console.error("Gagal kirim:",e);}
+  }
 
-    function render(){
-      tbody.innerHTML = filtered.map(r=>`
-        <tr>
-          <td>${formatTanggal(r.date)}</td>
-          <td>${r.desc}</td>
-          <td>${r.type==="income"?"Pemasukan":"Pengeluaran"}</td>
-          <td class="right">${fmt(r.amount)}</td>
-        </tr>`).join('');
-      const totalIncome = filtered.filter(e=>e.type==='income').reduce((s,v)=>s+v.amount,0);
-      const totalExpense = filtered.filter(e=>e.type==='expense').reduce((s,v)=>s+v.amount,0);
-      totalIncomeEl.textContent = fmt(totalIncome);
-      totalExpenseEl.textContent = fmt(totalExpense);
-      balanceEl.textContent = fmt(totalIncome-totalExpense);
-      countEl.textContent = filtered.length;
-      updateChart();
-    }
+  document.getElementById("entryForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const date=document.getElementById("date").value,desc=document.getElementById("desc").value.trim(),type=document.getElementById("type").value,amount=Number(document.getElementById("amount").value);
+    if(!date||!desc||!amount)return alert("Lengkapi semua kolom!");
+    const entry={id:uid(),date,desc,type,amount};
+    entries.push(entry);applyFilter();e.target.reset();await sendToSheet(entry);
+  });
 
-    function updateChart(){
-      const labels = filtered.map(e=>formatTanggal(e.date));
-      const income = filtered.map(e=> e.type==='income'?e.amount:0);
-      const expense = filtered.map(e=> e.type==='expense'?-e.amount:0);
-      myChart.data = {
-        labels,
-        datasets:[
-          {label:"Pemasukan",data:income,borderColor:"#16a34a",backgroundColor:"rgba(22,163,74,0.1)",fill:true,tension:0.3},
-          {label:"Pengeluaran",data:expense,borderColor:"#dc2626",backgroundColor:"rgba(220,38,38,0.1)",fill:true,tension:0.3}
-        ]
-      };
-      myChart.update();
-    }
+  monthFilter.addEventListener("change",applyFilter);
+
+  function setupMonthFilter(){
+    const months=[...new Set(entries.map(e=>{const d=new Date(e.date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}))].sort().reverse();
+    const now=new Date();const currentMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    monthFilter.innerHTML=months.map(m=>{const [y,mo]=m.split('-');const nm=new Date(y,mo-1).toLocaleString('id-ID',{month:'long',year:'numeric'});return `<option value="${m}" ${m===currentMonth?'selected':''}>${nm}</option>`}).join('');
+    if(!months.includes(currentMonth)&&months.length>0)monthFilter.value=months[0];
+  }
+
+  function applyFilter(){
+    const val=monthFilter.value;
+    if(!val){filtered=entries;}else{
+      const [y,m]=val.split('-').map(Number);
+      filtered=entries.filter(e=>{const d=new Date(e.date);return d.getFullYear()===y&&d.getMonth()+1===m;});
+    }render();
+  }
+
+  function render(){
+    tbody.innerHTML=filtered.map(r=>{
+      const d=new Date(r.date);
+      return `<tr><td>${d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}</td><td>${r.desc}</td><td>${r.type==='income'?'Pemasukan':'Pengeluaran'}</td><td class='right'>${fmt(r.amount)}</td></tr>`;
+    }).join('');
+    const totalIncome=filtered.filter(e=>e.type==='income').reduce((s,v)=>s+v.amount,0);
+    const totalExpense=filtered.filter(e=>e.type==='expense').reduce((s,v)=>s+v.amount,0);
+    totalIncomeEl.textContent=fmt(totalIncome);totalExpenseEl.textContent=fmt(totalExpense);
+    balanceEl.textContent=fmt(totalIncome-totalExpense);countEl.textContent=filtered.length;
+    updateChart();
+  }
+
+  function updateChart(){
+    const labels=filtered.map(e=>{const d=new Date(e.date);return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'});});
+    const income=filtered.map(e=>e.type==='income'?e.amount:0);
+    const expense=filtered.map(e=>e.type==='expense'?-e.amount:0);
+    myChart.data={labels,datasets:[
+      {label:'Pemasukan',data:income,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.1)',fill:true,tension:0.3},
+      {label:'Pengeluaran',data:expense,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.1)',fill:true,tension:0.3}
+    ]};myChart.update();
+  }
+
+  // 🖨️ Tombol Cetak
+  document.getElementById("btnPrint").addEventListener("click",()=>{
+    window.print();
+  });
   </script>
 </body>
 </html>

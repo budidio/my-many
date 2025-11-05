@@ -179,11 +179,20 @@
 
     monthFilter.onchange = ()=>applyFilter();
 
-    function applyFilter(){
+    function applyFilter() {
       const filterVal = monthFilter.value;
-      filtered = filterVal ? entries.filter(e=>e.date.startsWith(filterVal)) : entries;
+      if (!filterVal) {
+        filtered = entries;
+        } else {
+        const [year, month] = filterVal.split('-').map(Number);
+        filtered = entries.filter(e => {
+          const d = new Date(e.date);
+          return d.getFullYear() === year && d.getMonth() + 1 === month;
+          });
+      }
       render();
     }
+
 
     function render(){
       tbody.innerHTML = filtered.map(r=>`

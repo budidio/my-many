@@ -3,358 +3,218 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Keuangan Bulanan — Responsive (Login + Dashboard)</title>
+  <title>Keuangan Bulanan </title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    /* Mobile-first, warna lembut: putih / abu / biru muda */
-    :root{
+    :root {
       --bg:#f3f6fb; --card:#ffffff; --muted:#6b7280; --primary:#60a5fa; --accent:#2563eb;
-      --radius:12px; --gap:12px;
     }
-    *{box-sizing:border-box}
     body{margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:#0f172a}
-
-    /* Container */
     .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
     .panel{width:100%;max-width:980px}
-
-    /* Login card */
     .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(2,6,23,0.06)}
-    .login-center{display:flex;flex-direction:column;gap:14px;align-items:stretch}
     .title{font-size:20px;font-weight:600;color:var(--accent);text-align:center;margin-bottom:6px}
-    label{font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type=text],input[type=password],input[type=date],input[type=number],select{width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefc;background:#fbfdff}
-    button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:white;font-weight:600;cursor:pointer}
-    button.ghost{background:transparent;color:var(--accent);border:1px solid #cfe1ff}
-    #btnDemo, #loginErr + .muted {display: none !important;}
-
-    /* Dashboard layout */
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap}
-    form.row{display:flex;gap:8px;flex-wrap:wrap}
-    .small{padding:8px 10px;font-size:13px;border-radius:10px}
-
+    .login-center{display:flex;flex-direction:column;gap:14px}
+    input,select,button{padding:10px;border-radius:10px;border:1px solid #e5e7eb}
+    button{background:var(--accent);color:white;font-weight:600;cursor:pointer}
+    .ghost{background:transparent;color:var(--accent);border:1px solid #cfe1ff}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+    form.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{padding:8px;border-bottom:1px solid #eef4ff;text-align:left;font-size:14px}
-    th{font-weight:600;color:var(--muted)}
-
-    .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
-    .summary .item{background:#fbfdff;padding:10px;border-radius:10px;border:1px solid #eef7ff}
-    .muted{color:var(--muted)}
-
-    .chart-container{position:relative;height:160px;width:100%;margin-top:12px;border-radius:10px;padding:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid #eef4ff}
-
-    .hide{display:none}
-    .flex{display:flex;align-items:center;gap:8px}
+    th{color:#6b7280}
     .right{text-align:right}
-
-    /* Responsive adjustments */
-    @media(min-width:800px){
-      .summary{grid-template-columns:repeat(4,1fr)}
-      form.row{align-items:center}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+    .summary .item{background:#fbfdff;padding:10px;border-radius:10px;border:1px solid #eef7ff}
+    .chart-container{position:relative;height:160px;width:100%;margin-top:12px;border-radius:10px;padding:10px;background:#fff;border:1px solid #eef4ff}
+    .hide{display:none}
+    @media print {
+      button, select, form { display: none !important; }
+      .chart-container { display: none !important; }
+      .card { box-shadow: none; }
     }
-
-    /* larger tap targets on mobile */
-    .btn-lg{padding:10px 14px;border-radius:10px}
-    .danger{background:#fee2e2;color:#b91c1c}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="panel">
 
-      <!-- LOGIN CARD -->
+      <!-- LOGIN -->
       <div id="loginCard" class="card">
         <div class="login-center">
           <div class="title">Masuk — Sistem Keuangan</div>
-          <div>
-            <label for="username">Username</label>
-            <input id="username" type="text" placeholder="Username" autocomplete="username" />
-          </div>
-          <div>
-            <label for="password">Password</label>
-            <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
-          </div>
-          <div class="flex">
-            <button id="btnLogin">Masuk</button>
-            <button id="btnDemo" class="ghost">Isi contoh</button>
-          </div>
-          <div id="loginErr" class="muted" style="color:#b91c1c;display:none;font-size:13px" ></div>
-          <div class="muted" style="font-size:13px;text-align:center">Gunakan username <strong>admin</strong> dan password <strong>1122aabb</strong></div>
+          <label>Username</label>
+          <input id="username" type="text" placeholder="Username" />
+          <label>Password</label>
+          <input id="password" type="password" placeholder="Password" />
+          <button id="btnLogin">Masuk</button>
+          <div id="loginErr" style="color:#b91c1c;display:none;font-size:13px"></div>
         </div>
       </div>
 
-      <!-- DASHBOARD (disembunyikan sampai login) -->
+      <!-- DASHBOARD -->
       <div id="dash" class="card hide">
         <div class="topbar">
           <div>
             <div style="font-weight:700;color:var(--accent)">Keuangan Bulanan</div>
-            <div class="muted" id="currentMonth"></div>
+            <small id="currentMonth"></small>
           </div>
-          <div class="flex">
-            <button id="btnLogout" class="ghost">Keluar</button>
+          <div class="flex" style="display:flex;gap:6px">
+            <select id="monthFilter"></select>
+            <button class="ghost" id="btnPrint">Cetak</button>
+            <button class="ghost" id="btnLogout">Keluar</button>
           </div>
         </div>
 
-        <!-- Input transaksi -->
-        <form id="entryForm" class="row" autocomplete="off">
-          <input type="date" id="date" class="small" required />
-          <input type="text" id="desc" class="small" placeholder="Deskripsi" required />
-          <select id="type" class="small">
+        <!-- Form input -->
+        <form id="entryForm" class="row">
+          <input type="date" id="date" required />
+          <input type="text" id="desc" placeholder="Deskripsi" required />
+          <select id="type">
             <option value="income">Pemasukan</option>
             <option value="expense">Pengeluaran</option>
           </select>
-          <input type="number" id="amount" class="small" placeholder="Nominal" required />
-          <button type="submit" id="submitBtn" class="btn-lg">Tambah</button>
-          <button type="button" id="clearMonth" class="ghost">Bersihkan bulan</button>
+          <input type="number" id="amount" placeholder="Nominal" required />
+          <button type="submit">Tambah</button>
         </form>
 
-        <!-- Controls -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
-          <div class="flex">
-            <label class="muted" style="margin-right:6px">Bulan</label>
-            <input type="month" id="monthPicker" />
-          </div>
-          <div class="flex">
-            <label class="muted" style="margin-right:6px">Tampilan</label>
-            <select id="viewMode">
-              <option value="daily">Harian</option>
-              <option value="weekly">Mingguan</option>
-            </select>
-          </div>
-          <div class="flex">
-            <input type="number" id="limitValue" placeholder="Batas nominal" />
-            <button id="applyLimit" class="ghost">Atur</button>
-          </div>
+        <!-- Ringkasan -->
+        <div class="summary">
+          <div class="item"><div>Total Pemasukan</div><div id="totalIncome">Rp 0</div></div>
+          <div class="item"><div>Total Pengeluaran</div><div id="totalExpense">Rp 0</div></div>
+          <div class="item"><div>Saldo</div><div id="balance">Rp 0</div></div>
+          <div class="item"><div>Jumlah Transaksi</div><div id="count">0</div></div>
         </div>
 
-        <!-- Table & summary -->
-        <div style="overflow:auto;margin-top:10px">
+        <!-- Grafik -->
+        <div class="chart-container"><canvas id="chart"></canvas></div>
+
+        <!-- Tabel (dipindah ke bawah grafik) -->
+        <div style="overflow:auto;margin-top:20px">
           <table>
             <thead>
-              <tr><th>Tanggal</th><th>Deskripsi</th><th>Jenis</th><th class="right">Nominal</th><th>Aksi</th></tr>
+              <tr><th>Tanggal</th><th>Deskripsi</th><th>Jenis</th><th class="right">Nominal</th></tr>
             </thead>
             <tbody id="entriesTable"></tbody>
           </table>
         </div>
-
-        <div class="summary">
-          <div class="item"><div class="muted">Total Pemasukan</div><div id="totalIncome">0</div></div>
-          <div class="item"><div class="muted">Total Pengeluaran</div><div id="totalExpense">0</div></div>
-          <div class="item"><div class="muted">Saldo (Income - Expense)</div><div id="balance">0</div></div>
-          <div class="item"><div class="muted">Jumlah Transaksi</div><div id="count">0</div></div>
-        </div>
-
-        <div class="chart-container">
-          <canvas id="chart"></canvas>
-        </div>
-
       </div>
-
     </div>
   </div>
 
   <script>
-    // --- Simple auth (on-page) ---
-    const CORRECT_USER = 'admin';
-    const CORRECT_PASS = '1122aabb';
-    const loginCard = document.getElementById('loginCard');
-    const dash = document.getElementById('dash');
-    const btnLogin = document.getElementById('btnLogin');
-    const btnLogout = document.getElementById('btnLogout');
-    const loginErr = document.getElementById('loginErr');
+    const SHEET_API = "https://script.google.com/macros/s/AKfycbzQlv_kZWPGhmQSyRk7HCUrpqVnjdpdfH8x1vpqhlzbvVs0WguQZW_e4EfKtshVQUnfzA/exec";
+    const USER = "admin", PASS = "1122aabb";
 
-    // --- State & storage keys ---
-    const LS_ENTRIES = 'keuangan_app_entries_v2';
-    const LS_AUTH = 'keuangan_app_auth_v2';
-    let entries = JSON.parse(localStorage.getItem(LS_ENTRIES) || '[]');
-    let editingId = null;
-    let currentLimit = null;
+    const loginCard = document.getElementById("loginCard");
+    const dash = document.getElementById("dash");
+    const btnLogin = document.getElementById("btnLogin");
+    const btnLogout = document.getElementById("btnLogout");
+    const loginErr = document.getElementById("loginErr");
+    const monthFilter = document.getElementById("monthFilter");
+    const btnPrint = document.getElementById("btnPrint");
 
-    // --- UI refs ---
-    const usernameEl = document.getElementById('username');
-    const passwordEl = document.getElementById('password');
+    btnLogin.onclick = () => {
+      const u = username.value.trim(), p = password.value.trim();
+      if (u === USER && p === PASS) { loginCard.classList.add("hide"); dash.classList.remove("hide"); loadFromSheet(); }
+      else { loginErr.style.display="block"; loginErr.textContent="Username atau password salah"; }
+    };
+    btnLogout.onclick = ()=>{ loginCard.classList.remove("hide"); dash.classList.add("hide"); };
+    btnPrint.onclick = ()=> window.print();
 
-    const monthPicker = document.getElementById('monthPicker');
-    const dateInput = document.getElementById('date');
-    const descInput = document.getElementById('desc');
-    const typeInput = document.getElementById('type');
-    const amountInput = document.getElementById('amount');
-    const tbody = document.getElementById('entriesTable');
-    const totalIncomeEl = document.getElementById('totalIncome');
-    const totalExpenseEl = document.getElementById('totalExpense');
-    const balanceEl = document.getElementById('balance');
-    const countEl = document.getElementById('count');
-    const viewMode = document.getElementById('viewMode');
-    const limitValue = document.getElementById('limitValue');
+    let entries = [], filtered = [];
+    const tbody = document.getElementById("entriesTable");
+    const totalIncomeEl = document.getElementById("totalIncome");
+    const totalExpenseEl = document.getElementById("totalExpense");
+    const balanceEl = document.getElementById("balance");
+    const countEl = document.getElementById("count");
 
-    // Chart setup
-    const ctx = document.getElementById('chart').getContext('2d');
-    const chartConfig = { type:'line', data:{labels:[],datasets:[]}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}};
-    let myChart = new Chart(ctx, chartConfig);
+    const ctx = document.getElementById("chart").getContext("2d");
+    let myChart = new Chart(ctx, { type:"line", data:{labels:[],datasets:[]}, options:{responsive:true,maintainAspectRatio:false} });
 
-    // init month picker to current
-    const today = new Date();
-    monthPicker.value = today.toISOString().slice(0,7);
-    document.getElementById('currentMonth').textContent = new Date().toLocaleString('id-ID',{month:'long',year:'numeric'});
+    function fmt(n){return Number(n).toLocaleString('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0})}
+    function formatTanggal(val){
+      const d = new Date(val);
+      return isNaN(d) ? val : d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});
+    }
 
-    // --- Auth handlers ---
-    function setAuth(s){ localStorage.setItem(LS_AUTH, JSON.stringify({logged:s})); }
-    function getAuth(){ try{ return JSON.parse(localStorage.getItem(LS_AUTH)||'{}').logged }catch(e){return false} }
+    async function loadFromSheet(){
+      const res = await fetch(SHEET_API);
+      const rows = await res.json();
+      entries = rows.slice(1).map(r=>({date:r[0],desc:r[1],type:r[2],amount:Number(r[3])}));
+      updateMonthFilter();
+      applyFilter();
+    }
 
-    btnLogin.addEventListener('click', ()=>{
-      const u = usernameEl.value.trim();
-      const p = passwordEl.value;
-      if(u===CORRECT_USER && p===CORRECT_PASS){
-        loginErr.style.display='none';
-        setAuth(true);
-        showDashboard();
-      } else {
-        loginErr.style.display='block';
-        loginErr.textContent = 'Username atau password salah.';
-      }
-    });
+    async function sendToSheet(entry){
+      const formData = new FormData();
+      formData.append("date", entry.date);
+      formData.append("desc", entry.desc);
+      formData.append("type", entry.type);
+      formData.append("amount", entry.amount);
+      await fetch(SHEET_API, { method:"POST", mode:"no-cors", body:formData });
+    }
 
-    btnLogout.addEventListener('click', ()=>{ setAuth(false); hideDashboard(); });
-
-    // demo fill
-    document.getElementById('btnDemo').addEventListener('click', ()=>{
-      usernameEl.value = 'admin'; passwordEl.value = '1122aabb';
-    });
-
-    // --- show/hide ---
-    function showDashboard(){ loginCard.classList.add('hide'); dash.classList.remove('hide'); render(); }
-    function hideDashboard(){ loginCard.classList.remove('hide'); dash.classList.add('hide'); }
-
-    // check existing auth
-    if(getAuth()){ showDashboard(); } else { hideDashboard(); }
-
-    // --- CRUD ---
-    function save(){ localStorage.setItem(LS_ENTRIES, JSON.stringify(entries)); }
-
-    function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
-    function fmt(n){ return Number(n).toLocaleString('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}); }
-
-    document.getElementById('entryForm').addEventListener('submit', (e)=>{
+    entryForm.onsubmit = async e=>{
       e.preventDefault();
-      const date = dateInput.value;
-      const desc = descInput.value.trim();
-      const type = typeInput.value;
-      const amt = Math.abs(Number(amountInput.value) || 0);
-      if(!date || !desc || !amt){ alert('Lengkapi semua data dan nominal bukan 0'); return; }
-      if(editingId){
-        entries = entries.map(it=> it.id===editingId ? {...it,date,desc,type,amount:amt} : it);
-        editingId = null; document.getElementById('submitBtn').textContent='Tambah';
-      } else {
-        entries.push({id:uid(),date,desc,type,amount:amt});
-      }
-      save(); e.target.reset(); render();
-    });
+      const entry = {
+        date: date.value,
+        desc: desc.value.trim(),
+        type: type.value,
+        amount: Number(amount.value)
+      };
+      if(!entry.date || !entry.desc || !entry.amount) return alert("Lengkapi semua kolom!");
+      entries.push(entry);
+      await sendToSheet(entry);
+      entryForm.reset();
+      updateMonthFilter();
+      applyFilter();
+    };
 
-    tbody.addEventListener('click',(ev)=>{
-      const btn = ev.target.closest('button'); if(!btn) return;
-      const idx = btn.dataset.idx;
-      const act = btn.dataset.act;
-      if(act==='edit'){
-        const row = entries.find(r=> r.id===idx); if(!row) return;
-        editingId = row.id; dateInput.value=row.date; descInput.value=row.desc; typeInput.value=row.type; amountInput.value=row.amount; document.getElementById('submitBtn').textContent='Update';
-      } else if(act==='del'){
-        if(confirm('Hapus transaksi?')){ entries = entries.filter(r=> r.id!==idx); save(); render(); }
-      }
-    });
+    function updateMonthFilter(){
+      const months = [...new Set(entries.map(e=> new Date(e.date).toISOString().slice(0,7)))].sort().reverse();
+      monthFilter.innerHTML = `<option value="">Semua Bulan</option>` +
+        months.map(m=>`<option value="${m}">${new Date(m+"-01").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}</option>`).join('');
+    }
 
-    document.getElementById('clearMonth').addEventListener('click', ()=>{
-      const ym = monthPicker.value; if(!ym) return; if(confirm('Hapus semua transaksi untuk '+ym+' ?')){ entries = entries.filter(e=> e.date.slice(0,7)!==ym); save(); render(); }
-    });
+    monthFilter.onchange = ()=>applyFilter();
 
-    document.getElementById('applyLimit').addEventListener('click',()=>{ currentLimit = Number(limitValue.value) || null; render(); });
+    function applyFilter(){
+      const filterVal = monthFilter.value;
+      filtered = filterVal ? entries.filter(e=>e.date.startsWith(filterVal)) : entries;
+      render();
+    }
 
-    monthPicker.addEventListener('change', render);
-    viewMode.addEventListener('change', render);
-
-    // --- render table & summary & chart ---
     function render(){
-      const ym = monthPicker.value;
-      const visible = entries.filter(e=> e.date.slice(0,7)===ym).sort((a,b)=> a.date.localeCompare(b.date));
-      // table
-      tbody.innerHTML = visible.map(r=> `<tr>
-        <td>${r.date}</td>
-        <td>${r.desc}</td>
-        <td>${r.type}</td>
-        <td class="right">${fmt(r.amount)}</td>
-        <td><button data-act="edit" data-idx="${r.id}">Edit</button> <button data-act="del" data-idx="${r.id}" class="danger">Hapus</button></td>
-      </tr>`).join('') || '<tr><td colspan="5" class="muted">Belum ada transaksi untuk bulan ini</td></tr>';
-
-      // summary
-      const totalIncome = visible.filter(v=> v.type==='income').reduce((s,v)=> s+Number(v.amount),0);
-      const totalExpense = visible.filter(v=> v.type==='expense').reduce((s,v)=> s+Number(v.amount),0);
+      tbody.innerHTML = filtered.map(r=>`
+        <tr>
+          <td>${formatTanggal(r.date)}</td>
+          <td>${r.desc}</td>
+          <td>${r.type==="income"?"Pemasukan":"Pengeluaran"}</td>
+          <td class="right">${fmt(r.amount)}</td>
+        </tr>`).join('');
+      const totalIncome = filtered.filter(e=>e.type==='income').reduce((s,v)=>s+v.amount,0);
+      const totalExpense = filtered.filter(e=>e.type==='expense').reduce((s,v)=>s+v.amount,0);
       totalIncomeEl.textContent = fmt(totalIncome);
       totalExpenseEl.textContent = fmt(totalExpense);
-      balanceEl.textContent = fmt(totalIncome - totalExpense);
-      countEl.textContent = visible.length;
-
-      renderChartForMonth(ym, visible);
+      balanceEl.textContent = fmt(totalIncome-totalExpense);
+      countEl.textContent = filtered.length;
+      updateChart();
     }
 
-    function renderChartForMonth(yearMonth, visibleEntries){
-      if(!yearMonth){ myChart.data.labels=[]; myChart.data.datasets=[]; myChart.update(); return; }
-      const [y,m] = yearMonth.split('-').map(Number);
-      const daysInMonth = new Date(y,m,0).getDate();
-      let labels=[], dataPoints=[];
-
-      if(viewMode.value==='weekly'){
-        labels = ['Minggu 1','Minggu 2','Minggu 3','Minggu 4'];
-        const weekly = [0,0,0,0];
-        visibleEntries.forEach(e=>{
-          const d = new Date(e.date).getDate();
-          const idx = Math.min(3,Math.floor((d-1)/7));
-          weekly[idx] += (e.type==='income'?Number(e.amount):-Number(e.amount));
-        });
-        dataPoints = weekly;
-      } else {
-        labels = Array.from({length:daysInMonth},(_,i)=> String(i+1));
-        const daily = new Array(daysInMonth).fill(0);
-        visibleEntries.forEach(e=>{ const d=new Date(e.date).getDate(); daily[d-1] += (e.type==='income'?Number(e.amount):-Number(e.amount)); });
-        dataPoints = daily;
-      }
-
-      // cumulative for second dataset
-      const cumulative=[]; let acc=0; for(let i=0;i<dataPoints.length;i++){ acc+=dataPoints[i]; cumulative.push(Math.round(acc)); }
-
-      chartConfig.data = { labels: labels, datasets: [
-        { label:'Periode (net)', data: dataPoints.map(v=>Math.round(v)), borderWidth:2, tension:0.25, pointRadius:3, backgroundColor:'rgba(37,99,235,0.06)', fill:true },
-        { label:'Kumulatif', data: cumulative, borderWidth:2, tension:0.25, pointRadius:0, borderDash:[6,6] }
-      ]};
-
-      if(currentLimit !== null && !isNaN(Number(currentLimit))){ chartConfig.data.datasets.push({ label:'Batas', data:new Array(labels.length).fill(currentLimit), borderWidth:1, pointRadius:0, borderDash:[8,4] }); }
-
-      // adjust Y-axis
-      const allVals = chartConfig.data.datasets.flatMap(d=>d.data||[]).map(Number);
-      const maxV = Math.max(0, ...allVals); const minV = Math.min(0, ...allVals);
-      chartConfig.options.scales.y.min = Math.min(minV,0);
-      chartConfig.options.scales.y.max = Math.max(maxV, Math.abs(minV)) * 1.15;
-
-      // update chart instance
-      myChart.data = chartConfig.data; myChart.options = chartConfig.options; myChart.update();
+    function updateChart(){
+      const labels = filtered.map(e=>formatTanggal(e.date));
+      const income = filtered.map(e=> e.type==='income'?e.amount:0);
+      const expense = filtered.map(e=> e.type==='expense'?-e.amount:0);
+      myChart.data = {
+        labels,
+        datasets:[
+          {label:"Pemasukan",data:income,borderColor:"#16a34a",backgroundColor:"rgba(22,163,74,0.1)",fill:true,tension:0.3},
+          {label:"Pengeluaran",data:expense,borderColor:"#dc2626",backgroundColor:"rgba(220,38,38,0.1)",fill:true,tension:0.3}
+        ]
+      };
+      myChart.update();
     }
-
-    // Seed sample data for current month if empty (helpful on first use)
-    (function seedIfEmpty(){
-      const ym = monthPicker.value; const has = entries.some(e=> e.date.slice(0,7)===ym);
-      if(!has){ const d=new Date(); const y=d.getFullYear(); const m=('0'+(d.getMonth()+1)).slice(-2);
-        entries.push({id:uid(),date:`${y}-${m}-02`,desc:'Gaji',type:'income',amount:4500000});
-        entries.push({id:uid(),date:`${y}-${m}-05`,desc:'Sewa',type:'expense',amount:1200000});
-        entries.push({id:uid(),date:`${y}-${m}-10`,desc:'Makan',type:'expense',amount:300000}); save(); }
-    })();
-
-    // initial render if already logged in
-    if(getAuth()){ showDashboard(); }
-
-    // helper: expose render for some buttons
-    window.render = render;
-    window.updateChart = ()=> render();
-    window.aturBatas = ()=>{ currentLimit = Number(limitValue.value) || null; render(); };
-
   </script>
 </body>
 </html>

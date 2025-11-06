@@ -11,12 +11,12 @@
     }
     body{margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:#0f172a}
     .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
-    .panel{width:100%;max-width:980px}
+    .panel{width:100%;max-width:960px}
     .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(2,6,23,0.06)}
     .title{font-size:20px;font-weight:600;color:var(--accent);text-align:center;margin-bottom:6px}
     .login-center{display:flex;flex-direction:column;gap:14px}
-    input,select,button{padding:10px;border-radius:10px;border:1px solid #e5e7eb}
-    button{background:var(--accent);color:white;font-weight:600;cursor:pointer}
+    input,select,button{padding:10px;border-radius:10px;border:1px solid #e5e7eb;font-size:15px}
+    button{background:var(--accent);color:white;font-weight:600;cursor:pointer;border:none}
     .ghost{background:transparent;color:var(--accent);border:1px solid #cfe1ff}
     .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:10px}
     form.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -24,10 +24,16 @@
     th,td{padding:8px;border-bottom:1px solid #eef4ff;text-align:left;font-size:14px}
     th{color:#6b7280}
     .right{text-align:right}
-    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
-    .summary .item{background:#fbfdff;padding:10px;border-radius:10px;border:1px solid #eef7ff}
-    .chart-container{position:relative;height:160px;width:100%;margin-top:12px;border-radius:10px;padding:10px;background:#fff;border:1px solid #eef4ff}
-    .hide{display:none}
+    .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+    .item{background:#fbfdff;padding:10px;border-radius:10px;border:1px solid #eef7ff;text-align:center}
+    .item h3{margin:0;color:#6b7280;font-size:14px}
+    .item div{font-weight:700;font-size:16px;margin-top:4px}
+    .toggle-eye{cursor:pointer;font-size:16px;margin-left:6px;color:var(--accent)}
+    .chart-container{position:relative;height:180px;width:100%;margin-top:12px;border-radius:10px;padding:10px;background:#fff;border:1px solid #eef4ff}
+    @media(max-width:600px){
+      .summary{grid-template-columns:1fr;gap:8px}
+      form.row{flex-direction:column}
+    }
     @media print {
       button, select, form { display: none !important; }
       .chart-container { display: none !important; }
@@ -53,13 +59,13 @@
       </div>
 
       <!-- DASHBOARD -->
-      <div id="dash" class="card hide">
+      <div id="dash" class="card" style="display:none">
         <div class="topbar">
           <div>
             <div style="font-weight:700;color:var(--accent)">Keuangan Bulanan</div>
             <small id="currentMonth"></small>
           </div>
-          <div class="flex" style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px">
             <select id="monthFilter"></select>
             <button class="ghost" id="btnPrint">🖨️ Cetak</button>
             <button class="ghost" id="btnLogout">Keluar</button>
@@ -80,10 +86,22 @@
 
         <!-- Ringkasan -->
         <div class="summary">
-          <div class="item"><div>Total Pemasukan</div><div id="totalIncome">Rp 0</div></div>
-          <div class="item"><div>Total Pengeluaran</div><div id="totalExpense">Rp 0</div></div>
-          <div class="item"><div>Saldo</div><div id="balance">Rp 0</div></div>
-          <div class="item"><div>Jumlah Transaksi</div><div id="count">0</div></div>
+          <div class="item">
+            <h3>Total Pemasukan <span class="toggle-eye" id="eyeIncome">👁️</span></h3>
+            <div id="totalIncome">******</div>
+          </div>
+          <div class="item">
+            <h3>Total Pengeluaran</h3>
+            <div id="totalExpense">Rp 0</div>
+          </div>
+          <div class="item">
+            <h3>Saldo <span class="toggle-eye" id="eyeBalance">👁️</span></h3>
+            <div id="balance">******</div>
+          </div>
+          <div class="item">
+            <h3>Jumlah Transaksi</h3>
+            <div id="count">0</div>
+          </div>
         </div>
 
         <!-- Grafik -->
@@ -105,19 +123,40 @@
   <script>
   const SHEET_API = "https://script.google.com/macros/s/AKfycbzQlv_kZWPGhmQSyRk7HCUrpqVnjdpdfH8x1vpqhlzbvVs0WguQZW_e4EfKtshVQUnfzA/exec";
   const USER="admin",PASS="1122aabb";
-  
+
+  // Elemen utama
   const loginCard=document.getElementById("loginCard");
   const dash=document.getElementById("dash");
+  const loginErr=document.getElementById("loginErr");
   const btnLogin=document.getElementById("btnLogin");
   const btnLogout=document.getElementById("btnLogout");
-  const loginErr=document.getElementById("loginErr");
 
-  btnLogin.onclick=()=>{const u=username.value.trim(),p=password.value.trim();if(u===USER&&p===PASS){loginCard.classList.add("hide");dash.classList.remove("hide");loadFromSheet();}else{loginErr.style.display="block";loginErr.textContent="Username atau password salah";}};
-  btnLogout.onclick=()=>{loginCard.classList.remove("hide");dash.classList.add("hide");};
+  btnLogin.onclick=()=>{
+    const u=username.value.trim(),p=password.value.trim();
+    if(u===USER&&p===PASS){
+      loginCard.style.display="none";
+      dash.style.display="block";
+      loadFromSheet();
+    }else{
+      loginErr.style.display="block";
+      loginErr.textContent="Username atau password salah!";
+    }
+  };
 
+  btnLogout.onclick=()=>{
+    dash.style.display="none";
+    loginCard.style.display="block";
+  };
+
+  // Variabel global
   let entries=[],filtered=[];
+  let hideIncome=true,hideBalance=true;
+
   const tbody=document.getElementById("entriesTable");
-  const totalIncomeEl=document.getElementById("totalIncome"),totalExpenseEl=document.getElementById("totalExpense"),balanceEl=document.getElementById("balance"),countEl=document.getElementById("count");
+  const totalIncomeEl=document.getElementById("totalIncome");
+  const totalExpenseEl=document.getElementById("totalExpense");
+  const balanceEl=document.getElementById("balance");
+  const countEl=document.getElementById("count");
   const monthFilter=document.getElementById("monthFilter");
 
   const ctx=document.getElementById("chart").getContext("2d");
@@ -136,16 +175,21 @@
   }
 
   async function sendToSheet(entry){
-    try{
-      const fd=new FormData();
-      fd.append("date",entry.date);fd.append("desc",entry.desc);fd.append("type",entry.type);fd.append("amount",entry.amount);
-      await fetch(SHEET_API,{method:"POST",mode:"no-cors",body:fd});
-    }catch(e){console.error("Gagal kirim:",e);}
+    const fd=new FormData();
+    fd.append("date",entry.date);
+    fd.append("desc",entry.desc);
+    fd.append("type",entry.type);
+    fd.append("amount",entry.amount);
+    try{await fetch(SHEET_API,{method:"POST",mode:"no-cors",body:fd});}
+    catch(e){console.error("Gagal kirim:",e);}
   }
 
   document.getElementById("entryForm").addEventListener("submit",async e=>{
     e.preventDefault();
-    const date=document.getElementById("date").value,desc=document.getElementById("desc").value.trim(),type=document.getElementById("type").value,amount=Number(document.getElementById("amount").value);
+    const date=document.getElementById("date").value,
+          desc=document.getElementById("desc").value.trim(),
+          type=document.getElementById("type").value,
+          amount=Number(document.getElementById("amount").value);
     if(!date||!desc||!amount)return alert("Lengkapi semua kolom!");
     const entry={id:uid(),date,desc,type,amount};
     entries.push(entry);applyFilter();e.target.reset();await sendToSheet(entry);
@@ -156,16 +200,23 @@
   function setupMonthFilter(){
     const months=[...new Set(entries.map(e=>{const d=new Date(e.date);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}))].sort().reverse();
     const now=new Date();const currentMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    monthFilter.innerHTML=months.map(m=>{const [y,mo]=m.split('-');const nm=new Date(y,mo-1).toLocaleString('id-ID',{month:'long',year:'numeric'});return `<option value="${m}" ${m===currentMonth?'selected':''}>${nm}</option>`}).join('');
+    monthFilter.innerHTML=months.map(m=>{
+      const [y,mo]=m.split('-');
+      const nm=new Date(y,mo-1).toLocaleString('id-ID',{month:'long',year:'numeric'});
+      return `<option value="${m}" ${m===currentMonth?'selected':''}>${nm}</option>`;
+    }).join('');
     if(!months.includes(currentMonth)&&months.length>0)monthFilter.value=months[0];
   }
 
   function applyFilter(){
     const val=monthFilter.value;
-    if(!val){filtered=entries;}else{
-      const [y,m]=val.split('-').map(Number);
-      filtered=entries.filter(e=>{const d=new Date(e.date);return d.getFullYear()===y&&d.getMonth()+1===m;});
-    }render();
+    if(!val)return;
+    const [y,m]=val.split('-').map(Number);
+    filtered=entries.filter(e=>{
+      const d=new Date(e.date);
+      return d.getFullYear()===y&&d.getMonth()+1===m;
+    });
+    render();
   }
 
   function render(){
@@ -175,8 +226,10 @@
     }).join('');
     const totalIncome=filtered.filter(e=>e.type==='income').reduce((s,v)=>s+v.amount,0);
     const totalExpense=filtered.filter(e=>e.type==='expense').reduce((s,v)=>s+v.amount,0);
-    totalIncomeEl.textContent=fmt(totalIncome);totalExpenseEl.textContent=fmt(totalExpense);
-    balanceEl.textContent=fmt(totalIncome-totalExpense);countEl.textContent=filtered.length;
+    totalIncomeEl.textContent=hideIncome?"******":fmt(totalIncome);
+    totalExpenseEl.textContent=fmt(totalExpense);
+    balanceEl.textContent=hideBalance?"******":fmt(totalIncome-totalExpense);
+    countEl.textContent=filtered.length;
     updateChart();
   }
 
@@ -190,10 +243,12 @@
     ]};myChart.update();
   }
 
-  // 🖨️ Tombol Cetak
-  document.getElementById("btnPrint").addEventListener("click",()=>{
-    window.print();
-  });
+  // 👁️ Toggle visibilitas
+  document.getElementById("eyeIncome").onclick=()=>{hideIncome=!hideIncome;render();}
+  document.getElementById("eyeBalance").onclick=()=>{hideBalance=!hideBalance;render();}
+
+  // 🖨️ Cetak
+  document.getElementById("btnPrint").onclick=()=>window.print();
   </script>
 </body>
 </html>

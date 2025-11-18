@@ -6,122 +6,27 @@
   <title>Keuangan Bulanan — Google Sheet</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --bg: #f3f6fb;
-      --card: #ffffff;
-      --accent: #2563eb;
-      --muted: #6b7280;
-    }
-    body {
-      margin: 0;
-      background: var(--bg);
-      font-family: 'Inter', system-ui, sans-serif;
-      color: #0f172a;
-    }
-    .wrap {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 18px;
-    }
-    .panel {
-      width: 100%;
-      max-width: 980px;
-    }
-    .card {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 0 6px 20px rgba(2,6,23,0.06);
-    }
-    input, select, button {
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-    }
-    button {
-      background: var(--accent);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    button.ghost {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid #cfe1ff;
-    }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    form.row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 8px;
-      border-bottom: 1px solid #eef4ff;
-      text-align: left;
-      font-size: 14px;
-    }
-    th { color: var(--muted); }
-    .right { text-align: right; }
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 12px;
-    }
-    @media (max-width: 600px) {
-      .summary { grid-template-columns: repeat(2, 1fr); }
-    }
-    .item {
-      background: #fbfdff;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #eef7ff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .item .value {
-      font-weight: 600;
-      margin-top: 4px;
-      user-select: none;
-    }
-    .chart-container {
-      margin-top: 20px;
-      padding: 15px;
-      background: white;
-      border-radius: 10px;
-      border: 1px solid #eef4ff;
-      height: 300px;
-    }
-    details summary {
-      cursor: pointer;
-      padding: 10px;
-      background: #f8fafc;
-      border-radius: 8px;
-      font-weight: 600;
-    }
-    @media print {
-      button, select, form, details summary { display: none !important; }
-      .chart-container { height: 300px; }
-      .card { box-shadow: none; }
-    }
+    :root { --bg:#f3f6fb; --card:#ffffff; --accent:#2563eb; --muted:#6b7280; }
+    body { margin:0; background:var(--bg); font-family:'Inter',system-ui,sans-serif; color:#0f172a; }
+    .wrap { min-height:100vh; display:flex; justify-content:center; align-items:center; padding:18px; }
+    .panel { width:100%; max-width:980px; }
+    .card { background:var(--card); border-radius:16px; padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06); }
+    input,select,button { padding:10px; border-radius:10px; border:1px solid #e5e7eb; }
+    button { background:var(--accent); color:white; font-weight:600; cursor:pointer; }
+    button.ghost { background:transparent; color:var(--accent); border:1px solid #cfe1ff; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    form.row { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td { padding:8px; border-bottom:1px solid #eef4ff; text-align:left; font-size:14px; }
+    th { color:var(--muted); }
+    .right { text-align:right; }
+    .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px; }
+    @media(max-width:600px){ .summary{grid-template-columns:repeat(2,1fr);} }
+    .item { background:#fbfdff; padding:10px; border-radius:10px; border:1px solid #eef7ff; text-align:center; cursor:pointer; }
+    .item .value { font-weight:600; margin-top:4px; user-select:none; }
+    .chart-container { margin-top:20px; padding:15px; background:white; border-radius:10px; border:1px solid #eef4ff; height:300px; }
+    details summary { cursor:pointer; padding:10px; background:#f8fafc; border-radius:8px; font-weight:600; }
+    @media print { button,select,form,details summary { display:none!important; } .chart-container { height:300px; } .card { box-shadow:none; } }
   </style>
 </head>
 <body>
@@ -194,14 +99,12 @@
     </div>
   </div>
 
-  <script>
-  const SHEET_API="https://script.google.com/macros/s/AKfycbzQlv_kZWPGhmQSyRk7HCUrpqVnjdpdfH8x1vpqhlzbvVs0WguQZW_e4EfKtshVQUnfzA/exec";
-  const USER="admin",PASS="1122aabb";
+<script>
+  /* GANTI INI DENGAN LINK APP SCRIPT MILIKMU */
+  const SHEET_API = "https://script.google.com/macros/s/AKfycbwidE3QFajYjXGVnCZeJvIRNI12NbsI_EDu2ti9V3kxU13CgJetZ0C7ojfwLqqH6W10gA/exec";
 
   const loginCard=document.getElementById("loginCard");
   const dash=document.getElementById("dash");
-  const btnLogin=document.getElementById("btnLogin");
-  const btnLogout=document.getElementById("btnLogout");
   const loginErr=document.getElementById("loginErr");
   const monthFilter=document.getElementById("monthFilter");
   const tbody=document.getElementById("entriesTable");
@@ -210,40 +113,35 @@
   const balanceEl=document.getElementById("balance");
   const countEl=document.getElementById("count");
 
-  btnLogin.onclick=()=>{
-    const u=username.value.trim(),p=password.value.trim();
-    if(u===USER&&p===PASS){
-      loginCard.style.display="none";
-      dash.style.display="block";
+  // =======================
+  //  LOGIN SERVER-SIDE
+  // =======================
+  document.getElementById("btnLogin").onclick = async () => {
+    const u = username.value.trim();
+    const p = password.value.trim();
+
+    const res = await fetch(SHEET_API + "?login=1&u=" + encodeURIComponent(u) + "&p=" + encodeURIComponent(p));
+    const data = await res.json();
+
+    if (data.success) {
+      loginCard.style.display = "none";
+      dash.style.display = "block";
       loadFromSheet();
     } else {
-      loginErr.style.display="block";
-      loginErr.textContent="Username atau password salah";
+      loginErr.style.display = "block";
+      loginErr.textContent = "Username atau password salah";
     }
   };
-  btnLogout.onclick=()=>{loginCard.style.display="block";dash.style.display="none";};
 
+  document.getElementById("btnLogout").onclick = () => {
+    dash.style.display = "none";
+    loginCard.style.display = "block";
+  };
+
+  // =======================
+  //     LOAD DATA SHEET
+  // =======================
   let entries=[],filtered=[];
-  const ctx=document.getElementById("chart").getContext("2d");
-  let myChart=new Chart(ctx,{
-    type:"line",
-    data:{labels:[],datasets:[]},
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      scales:{
-        y:{
-          beginAtZero:true,
-          ticks:{
-            callback:(val)=>'Rp'+val.toLocaleString('id-ID'),
-            values:[10000,20000,30000,40000,50000,60000,70000,80000,90000,100000,200000,300000,400000,500000,1000000,2000000]
-          }
-        }
-      }
-    }
-  });
-
-  function fmt(n){return Number(n).toLocaleString('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0});}
 
   async function loadFromSheet(){
     try{
@@ -279,6 +177,9 @@
     await sendToSheet(entry);
   });
 
+  // =======================
+  //  FILTER + RINGKASAN
+  // =======================
   function setupMonthFilter(){
     const months=[...new Set(entries.map(e=>{
       const d=new Date(e.date);
@@ -309,6 +210,11 @@
   document.getElementById("incomeBox").onclick=()=>{incomeHidden=!incomeHidden;render();};
   document.getElementById("balanceBox").onclick=()=>{balanceHidden=!balanceHidden;render();};
 
+  function fmt(n){return Number(n).toLocaleString('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0});}
+
+  // =======================
+  //     RENDER TABEL
+  // =======================
   function render(){
     tbody.innerHTML=filtered.map(r=>{
       const d=new Date(r.date);
@@ -328,28 +234,51 @@
     updateChart();
   }
 
+  // =======================
+  //        GRAFIK
+  // =======================
+  const ctx=document.getElementById("chart").getContext("2d");
+  let myChart=new Chart(ctx,{
+    type:"line",
+    data:{labels:[],datasets:[]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{
+        y:{
+          beginAtZero:true,
+          ticks:{
+            callback:(val)=>'Rp'+val.toLocaleString('id-ID'),
+            values:[10000,20000,30000,40000,50000,100000,200000,300000,400000,500000,1000000]
+          }
+        }
+      }
+    }
+  });
+
   function updateChart(){
-    const dailyData={};
+    const daily={}
     filtered.forEach(e=>{
       const d=new Date(e.date).toLocaleDateString('id-ID');
-      if(!dailyData[d]) dailyData[d]={income:0,expense:0};
-      if(e.type==='income') dailyData[d].income+=e.amount;
-      else dailyData[d].expense+=e.amount;
+      if(!daily[d]) daily[d]={income:0,expense:0};
+      if(e.type==="income") daily[d].income+=e.amount;
+      else daily[d].expense+=e.amount;
     });
-    const labels=Object.keys(dailyData);
-    const income=labels.map(d=>dailyData[d].income);
-    const expense=labels.map(d=>dailyData[d].expense);
+    const labels=Object.keys(daily);
+    const income=labels.map(d=>daily[d].income);
+    const expense=labels.map(d=>daily[d].expense);
+
     myChart.data={
       labels,
       datasets:[
-        {label:'Pemasukan',data:income,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.1)',fill:true,tension:0.3},
-        {label:'Pengeluaran',data:expense,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.1)',fill:true,tension:0.3}
+        {label:"Pemasukan",data:income,borderColor:"#16a34a",backgroundColor:"rgba(22,163,74,0.1)",fill:true,tension:0.3},
+        {label:"Pengeluaran",data:expense,borderColor:"#dc2626",backgroundColor:"rgba(220,38,38,0.1)",fill:true,tension:0.3}
       ]
     };
     myChart.update();
   }
 
   document.getElementById("btnPrint").onclick=()=>window.print();
-  </script>
+</script>
 </body>
 </html>
